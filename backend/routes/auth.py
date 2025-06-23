@@ -1,5 +1,7 @@
 from fastapi import APIRouter
 from backend.db import db
+import random
+import string
 
 router = APIRouter()
 
@@ -22,13 +24,17 @@ def register_user(email, name, username, password, gender, age, phone):
         return {"success": True, "message": "User registered successfully"}
 
 
+def generate_phrase(length=7):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+
 @router.post("/login")
 def login_user(identifier,password):
     check = db.table('users').select('*').or_(f"username.eq.{identifier},email.eq.{identifier}").execute()
-
     user = check.data[0] if check.data else None
-
     if user and user['password'] == password:
-        return {"success": True, "message": "Login successful", "user": user}
+        phrase = generate_phrase()
+        db.table("users").update({"login_token": phrase}).eq("id", user["id"]).execute()
+        return {"success": True, "message": "Login successful", "token": phrase, "user": user}
     else:
         return {"success": False, "message": "Invalid username/email or password"}
