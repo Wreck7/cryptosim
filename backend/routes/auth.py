@@ -1,10 +1,11 @@
 from fastapi import APIRouter
+from backend.db import db
 
 router = APIRouter()
 
 @router.post("/register")
-def register_user():
-    check = db.table('register').select('*').or_(f"username.eq.{username},email.eq.{email}").execute()
+def register_user(email, name, username, password, gender, age, phone):
+    check = db.table('users').select('*').or_(f"username.eq.{username},email.eq.{email}").execute()
     if check.data:
         return False
     else:
@@ -13,10 +14,11 @@ def register_user():
             'email': email,
             'username': username,
             'password': password,
+            'gender': gender,
             'age': age,
-            'gender': gender
+            'phone': phone
         }
-        res = db.table('register').insert(data).execute()
+        res = db.table('users').insert(data).execute()
         return True
 
 

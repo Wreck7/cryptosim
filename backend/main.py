@@ -1,8 +1,7 @@
 from fastapi import FastAPI
+from backend.routes.auth import router as auth_router
 
 app = FastAPI(title="Crypto Dashboard API")
-
-from routes.auth import router as auth_router
 
 
 
