@@ -58,3 +58,11 @@ def refresh_dashboard():
 def get_all_coins():
     response = db.table("coins").select("*").order("rank", desc=False).execute()
     return response.data
+
+@router.get('/coins/{coin_id}')
+def get_specific_coin(coin_id):
+    res = db.table('coins').select('*').eq('coin_id', coin_id).execute()
+    return res.data[0]
+    
+
+
