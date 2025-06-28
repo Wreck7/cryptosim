@@ -21,6 +21,12 @@ def register_user(email, name, username, password, gender, age, phone):
             'phone': phone
         }
         res = db.table('users').insert(data).execute()
+        user_id = db.table('users').select('id').eq('username', username).execute()
+        user_id = user_id.data[0]['id']
+        wallet = db.table('wallet').insert({
+            'user_id': user_id,
+            'balance': 100000
+        }).execute()
         return {"success": True, "message": "User registered successfully"}
 
 
