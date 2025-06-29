@@ -130,14 +130,28 @@ router = APIRouter()
 
 @router.get("/portfolio")
 def get_portfolio(token: str):
-    portfolio = db.table("portfolio").select("*").eq("user_id", token).execute().data
+    user = db.table("users").select("id").eq("login_token", token).single().execute().data
+    if not user:
+        return {"message": "Invalid token"}
+
+    user_id = user["id"]
+    portfolio = db.table("portfolio").select("*").eq("user_id", user_id).execute().data
+
+    for p in portfolio:
+        coin = db.table("coins").select("price").eq("coin_id", p["coin_id"]).single().execute().data
+        current_price = coin["price"]
+        profit_loss = (current_price - p["avg_price"]) * p["quantity"]
+        db.table('portfolio').update({"current_price": current_price, 'profit_loss': profit_loss}).eq('portfolio_id', p['portfolio_id']).execute()
+        p["current_price"] = current_price
+        p["profit_loss"] = profit_loss
+        
     return {"portfolio": portfolio}
 
 
 # ---- Endpoint: Buy Coin ----
 
 @router.post("/portfolio/buy")
-def buy_coin(token: str, quantity: float, coin_id: str):
+def buy_coin(token: str, quantity: int, coin_id: str):
     user_getting = db.table("users").select('*').eq('login_token', token).execute()
     if not user_getting.data:
         return {"message": "Invalid token"}
@@ -167,14 +181,14 @@ def buy_coin(token: str, quantity: float, coin_id: str):
         db.table("portfolio").update({
             "quantity": new_qty,
             "avg_price": new_avg
-        }).eq("id", old["id"]).execute()
+        }).eq("portfolio_id", old["portfolio_id"]).execute()
     else:
         db.table("portfolio").insert({
             "user_id": user_id,
             "coin_id": coin_id,
-            "coin_name": coin['coin_name'],
             "quantity": quantity,
-            "avg_price": coin['price']
+            'avg_price': coin['price'],
+            
         }).execute()
 
     db.table("wallet").update({
@@ -184,12 +198,10 @@ def buy_coin(token: str, quantity: float, coin_id: str):
     db.table("transactions").insert({
         "user_id": user_id,
         "coin_id": coin_id,
-        "coin_name": coin['name'],
         "quantity": quantity,
-        "price": coin['price_per_unit'],
+        "price_per_unit": coin['price'],
         'total_value': total_cost,
-        "type": "buy",
-        "timestamp": datetime.utcnow().isoformat()
+        "type": "buy"
     }).execute()
 
     return {"message": "Coin bought successfully"}
@@ -242,8 +254,7 @@ def sell_coin(token: str, quantity: float, coin_id: str):
         "quantity": quantity,
         "price": coin['price_per_unit'],
         'total_value': total_sell_value,
-        "type": "sell",
-        "timestamp": datetime.utcnow().isoformat()
+        "type": "sell"
     }).execute()
 
     return {"message": "Coin sold successfully"}
