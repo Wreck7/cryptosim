@@ -29,11 +29,14 @@ def get_wishlist(token: str):
         return {"message": "Invalid token"}
     user_id = user["id"]
     wishlist = db.table("wishlist").select("*").eq("user_id", user_id).execute().data
-    coins = []
-    for item in wishlist:
-        coin = db.table("coins").select("*").eq("coin_id", item["coin_id"]).single().execute().data
-        coins.append(coin)
-    return {"wishlist": coins}
+    if wishlist:
+        coins = []
+        for item in wishlist:
+            coin = db.table("coins").select("*").eq("coin_id", item["coin_id"]).single().execute().data
+            coins.append(coin)
+        return {"wishlist": coins}
+    else:
+        return {'message': 'Wishlist is empty!'}
 
 
 

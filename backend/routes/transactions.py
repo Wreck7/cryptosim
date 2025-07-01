@@ -25,7 +25,7 @@ def get_transactions_by_coin(token: str, coin_id: str):
         return {"message": "Invalid token"}
     user_id = user.data[0]['id']
     result = db.table("transactions").select("*").eq("user_id", user_id).eq("coin_id", coin_id).execute()
-    if result:
+    if result.data:
         return result.data
     else:
         return 'transactions not found!'
