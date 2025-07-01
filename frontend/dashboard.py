@@ -12,22 +12,20 @@ def safe_format_number(value, decimals=2):
     """Safely format a number, handling None values"""
     if value is None:
         return "N/A"
-    try:
+    else:
         if decimals == 0:
             return f"{value:,.0f}"
         else:
             return f"{value:,.{decimals}f}"
-    except (ValueError, TypeError):
-        return "N/A"
+
 
 def safe_format_percentage(value, decimals=1):
     """Safely format a percentage, handling None values"""
     if value is None:
         return "N/A"
-    try:
+    else:
         return f"{value:.{decimals}f}%"
-    except (ValueError, TypeError):
-        return "N/A"
+
 
 def inject_css():
     st.markdown("""

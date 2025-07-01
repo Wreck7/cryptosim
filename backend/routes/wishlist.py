@@ -43,5 +43,9 @@ def remove_from_wishlist(token: str, coin_id: str):
     if not user:
         return {"message": "Invalid token"}
     user_id = user["id"]
+    exists = db.table("wishlist").select("*").eq("user_id", user_id).eq("coin_id", coin_id).execute().data
+    if not exists:
+        return {"message": "Coin doesn't exist in wishlist"}
     db.table("wishlist").delete().eq("user_id", user_id).eq("coin_id", coin_id).execute()
     return {"message": "Coin removed from wishlist"}
+        
