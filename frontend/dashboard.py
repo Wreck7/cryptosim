@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from portfolio import render_portfolio_page
 
 BASE_URL = "http://127.0.0.1:9000"  # Update if needed
 
@@ -250,7 +251,7 @@ def render_coin_card(coin, token):
         st.markdown('</div></div>', unsafe_allow_html=True)
 
 
-def main(token):
+def main():
     # Page configuration
 
     st.set_page_config(
@@ -261,6 +262,7 @@ def main(token):
     
     # Inject custom CSS (assuming this function exists)
     inject_css()
+    
     
     # Check if user is authenticated
     if "token" not in st.session_state:
@@ -306,7 +308,7 @@ def main(token):
     # Create simple top bar with balance
     col1, col2 = st.columns([3, 1])
     with col1:
-        st.markdown(f"# {token}")
+        st.markdown(f"# CryptoSim")
         st.caption('It all starts here!')
     with col2:
         st.markdown(f"**💰 Balance: ${balance:,.2f}**")
@@ -341,8 +343,9 @@ def main(token):
             st.rerun()
     # Handle different pages
     if page == "Dashboard":
-        st.markdown("## CryptoSim Dashboard")
-        st.markdown("**Top 20 Cryptocurrencies**")
+        st.markdown("<h2 style='text-align: center; color: white;'>Dashboard</h2>", unsafe_allow_html=True)
+        # st.write('')
+        st.markdown("###")
         # Fetch and display coins
         try:
             # Pass token to fetch_coins if it needs authentication
@@ -357,6 +360,8 @@ def main(token):
         except Exception as e:
             st.error(f"Failed to load cryptocurrency data: {str(e)}")
             st.info("💡 Please check your internet connection or try refreshing the page.")
+    elif page == 'Portfolio':
+        render_portfolio_page()
     else:
         st.warning(f"⚙️ `{page}` page is under construction.")
         return
