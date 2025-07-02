@@ -1,8 +1,11 @@
 import streamlit as st
 import requests
 from portfolio import render_portfolio_page
+from wishlist import render_wishlist_page
+from transactions import render_transactions_page
+from profile import render_profile_page
 
-BASE_URL = "http://127.0.0.1:9000"  # Update if needed
+BASE_URL = "http://127.0.0.1:7000"  # Update if needed
 
 def fetch_coins():
     # requests.get(f"{BASE_URL}/refresh-dashboard")
@@ -209,7 +212,7 @@ def render_coin_card(coin, token):
             </div>
         """, unsafe_allow_html=True)
         # Buy section
-        col1, col2 = st.columns([3, 1])
+        col1, col2, col3 = st.columns([3, 1, 1])
         with col1:
             quantity = st.number_input(
                 f"Qty ({coin_symbol})", 
@@ -233,7 +236,7 @@ def render_coin_card(coin, token):
 
                     if total_cost > balance:
                         st.toast(
-                            f"❌ Insufficient balance. You need ${total_cost:,.2f} but only have ${balance:,.2f}.",
+                            f"Insufficient balance. You need ${total_cost:,.2f}",
                             icon="⚠️"
                         )
                     else:
@@ -242,12 +245,19 @@ def render_coin_card(coin, token):
 
                         if res.ok:
                             result = res.json()
-                            st.toast(f"✅ Bought {quantity} {coin_symbol} for ${total_cost:,.2f}", icon="💸")
+                            st.toast(f"Bought {quantity} {coin_symbol} for ${total_cost:,.2f}", icon="✅")
                         else:
                             st.error("❌ Failed to complete purchase. Please try again.")
                 else:
                     st.toast("❌ Something went wrong. Try again.", icon="🚫")
-
+        with col3:
+            if st.button("★", key=f"wishlist_{coin_id}", use_container_width=True, type='primary', help="Add to wishlist"):
+                wishlist_url = f'{BASE_URL}/wishlist/add?token={token}&coin_id={coin_id}'
+                wishlist_res = requests.post(wishlist_url)
+                if wishlist_res.status_code == 200:
+                    st.toast("✨ Added to Wishlist!")
+                else:
+                    st.toast("❌ Failed to add to Wishlist.", icon="⚠️")
         st.markdown('</div></div>', unsafe_allow_html=True)
 
 
@@ -311,8 +321,8 @@ def main():
         st.markdown(f"# CryptoSim")
         st.caption('It all starts here!')
     with col2:
-        st.markdown(f"**💰 Balance: ${balance:,.2f}**")
-        if st.button("🔄 Refresh", key="refresh_balance"):
+        st.write('')
+        if st.button(f"**Balance: ${balance:,.2f}**", key="refresh_balance", help="Refresh balance"):
             with st.spinner("Refreshing balance..."):
                 balance, is_valid = get_user_balance(token, BASE_URL)
                 if is_valid:
@@ -332,7 +342,7 @@ def main():
     with st.sidebar:
         st.markdown("## Home")
         st.markdown("---")
-        page = st.radio("Go to", ["Dashboard", "Portfolio", "Wishlist"])
+        page = st.radio("Go to", ["Dashboard", "Portfolio", "Wishlist", 'Transactions', 'Profile'])
         st.markdown("---")
         st.markdown(f"**Current Balance: ${balance:,.2f}**")
         # st.markdown("---")
@@ -362,13 +372,15 @@ def main():
             st.info("💡 Please check your internet connection or try refreshing the page.")
     elif page == 'Portfolio':
         render_portfolio_page()
+    elif page == 'Wishlist':
+        render_wishlist_page()
+    elif page == 'Transactions':
+        render_transactions_page()
+    elif page == 'Profile':
+        render_profile_page()
     else:
         st.warning(f"⚙️ `{page}` page is under construction.")
         return
-    # Dashboard Header
-
-# Don't forget to define BASE_URL at the top of your file
-# BASE_URL = "your_api_base_url_here"
 
 if __name__ == "__main__":
     main()

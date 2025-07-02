@@ -6,7 +6,7 @@ st.set_page_config(page_title="CryptoSim Auth", layout="centered", page_icon="�
 
 
 # --- CONFIG ---
-BASE_URL = "http://127.0.0.1:9000"  # Update if deployed
+BASE_URL = "http://127.0.0.1:7000"  # Update if deployed
 
 st.set_page_config(page_title="Crypto Vault Auth", page_icon="🪙", layout="centered")
 st.markdown("<h1 style='text-align: center;'>CryptoSim</h1>", unsafe_allow_html=True)
@@ -66,29 +66,3 @@ with tab1:
                 st.success("🎉 Registered successfully! You can now log in.")
             else:
                 st.error(res.json().get("message", "Registration failed."))
-
-# with tab3:
-#         # st.subheader("🔐 Enter Token to Access Dashboard")
-#         # token = st.text_input("Enter your login token:", type="password")
-
-#         # if st.button("Access Dashboard", type="primary"):
-#         #     if token:
-#         #         # Pass the token to dashboard_main manually
-#         #         dashboard_main(token)
-#         #     else:
-#         #         st.warning("Token is required to access the dashboard.")
-#         if "dashboard_token" not in st.session_state:
-#             st.subheader("🔐 Enter Token to Access Dashboard")
-#             token = st.text_input("Enter your login token:", type="password", key="manual_token")
-
-#             if st.button("Access Dashboard", type="primary"):
-#                 if token:
-#                     # validate token before saving (optional)
-#                     balance, is_valid = get_user_balance(token, BASE_URL)
-#                     if is_valid:
-#                         st.session_state.dashboard_token = token
-#                         st.rerun()
-#                     else:
-#                         st.error("❌ Invalid token. Please try again.")
-#         else:
-#             dashboard_main(st.session_state.dashboard_token)

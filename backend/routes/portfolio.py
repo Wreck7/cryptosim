@@ -18,12 +18,13 @@ def get_portfolio(token: str):
     portfolio = db.table("portfolio").select("*").eq("user_id", user_id).execute().data
 
     for p in portfolio:
-        coin = db.table("coins").select("price").eq("coin_id", p["coin_id"]).single().execute().data
+        coin = db.table("coins").select("*").eq("coin_id", p["coin_id"]).single().execute().data
         current_price = coin["price"]
         profit_loss = (current_price - p["avg_price"]) * p["quantity"]
-        db.table('portfolio').update({"current_price": current_price, 'profit_loss': profit_loss}).eq('portfolio_id', p['portfolio_id']).execute()
         p["current_price"] = current_price
         p["profit_loss"] = profit_loss
+        p["coin_image_url"] = coin.get("coin_image_url")
+        db.table('portfolio').update({"current_price": current_price, 'profit_loss': profit_loss}).eq('portfolio_id', p['portfolio_id']).execute()
         
     return {"portfolio": portfolio}
 
