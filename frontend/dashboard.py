@@ -8,7 +8,7 @@ from profile import render_profile_page
 BASE_URL = "http://127.0.0.1:7000"  # Update if needed
 
 def fetch_coins():
-    # requests.get(f"{BASE_URL}/refresh-dashboard")
+    requests.get(f"{BASE_URL}/refresh-dashboard")
     res = requests.get(f"{BASE_URL}/coins")
     return res.json()
 
@@ -263,17 +263,13 @@ def render_coin_card(coin, token):
 
 def main():
     # Page configuration
-
     st.set_page_config(
         page_title="Crypto Dashboard",
         layout="wide",
         page_icon="💹"
     )
-    
     # Inject custom CSS (assuming this function exists)
     inject_css()
-    
-    
     # Check if user is authenticated
     if "token" not in st.session_state:
         st.markdown("### 🔑 Please enter your token to access the dashboard:")
@@ -291,7 +287,6 @@ def main():
                 else:
                     st.error("❌ Invalid token. Please check your token and try again.")
         return
-    
     # Get token and balance
     token = st.session_state.token
     

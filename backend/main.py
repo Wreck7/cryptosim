@@ -10,9 +10,6 @@ from backend.routes.wishlist import router as wishlist_router
 
 app = FastAPI(title="Crypto Dashboard API")
 
-# @app.get("/")
-# def read_root():
-#     return {"message": "Hello, world!"}
 
 app.include_router(auth_router)
 app.include_router(profile_router)
