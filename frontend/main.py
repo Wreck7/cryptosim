@@ -1,5 +1,9 @@
 import streamlit as st
 import requests
+from dashboard import main as dashboard_main
+st.set_page_config(page_title="CryptoSim Auth", layout="centered", page_icon="🔐")
+
+
 
 # --- CONFIG ---
 BASE_URL = "http://127.0.0.1:9000"  # Update if deployed
@@ -8,7 +12,7 @@ st.set_page_config(page_title="Crypto Vault Auth", page_icon="🪙", layout="cen
 st.markdown("<h1 style='text-align: center;'>CryptoSim</h1>", unsafe_allow_html=True)
 
 # --- TABS ---
-tab1, tab2 = st.tabs(["Register", "Login"])
+tab1, tab2, tab3 = st.tabs(["Register", "Login", 'Dashboard'])
 
 # --- LOGIN TAB ---
 with tab2:
@@ -62,3 +66,15 @@ with tab1:
                 st.success("🎉 Registered successfully! You can now log in.")
             else:
                 st.error(res.json().get("message", "Registration failed."))
+
+with tab3: 
+    with tab3:
+        st.subheader("🔐 Enter Token to Access Dashboard")
+        token = st.text_input("Enter your login token:", type="password")
+
+        if st.button("Access Dashboard", type="primary"):
+            if token:
+                # Pass the token to dashboard_main manually
+                dashboard_main(token)
+            else:
+                st.warning("Token is required to access the dashboard.")
