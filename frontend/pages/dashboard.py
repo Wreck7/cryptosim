@@ -1,11 +1,27 @@
 import streamlit as st
-import requests
-from portfolio import render_portfolio_page
-from wishlist import render_wishlist_page
-from transactions import render_transactions_page
-from profile import render_profile_page
+import sys
+import os
 
-BASE_URL = "http://127.0.0.1:7000"  # Update if needed
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# 🔐 Redirect if not logged in
+if not st.session_state.get("logged_in") or "token" not in st.session_state:
+    st.warning("You must be logged in to access the dashboard.")
+    st.switch_page("main.py")  # change this if your file is named differently
+    st.stop()
+
+# ✅ Now safe to use session data
+token = st.session_state.token
+
+# ✅ Import internal app pages
+import requests
+from pages.portfolio import render_portfolio_page
+from pages.wishlist import render_wishlist_page
+from pages.transactions import render_transactions_page
+from pages.profile import render_profile_page
+
+BASE_URL = "http://127.0.0.1:7001"  # Update if needed
 
 def fetch_coins():
     requests.get(f"{BASE_URL}/refresh-dashboard")
@@ -30,6 +46,42 @@ def safe_format_percentage(value, decimals=1):
         return f"{value:.{decimals}f}%"
 
 def inject_css():
+    st.markdown("""
+    <style>
+    /* Hide default MPA sidebar from Streamlit */
+    [data-testid="stSidebarNav"] {
+        display: none !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    /* Hide the radio circle */
+    .stRadio > div[role="radiogroup"] > label > div:first-child {
+        display: none !important;
+    }
+
+    /* Style the entire label like a sidebar nav item */
+    .stRadio > div[role="radiogroup"] > label {
+        display: block;
+        padding: 12px;
+        border-radius: 8px;
+        color: #E2E8F0;  /* light text */
+        background-color: transparent;
+        transition: all 0.2s ease;
+        font-weight: 900;
+        font-size: 20px;
+    }
+
+    /* Hover effect */
+    .stRadio > div[role="radiogroup"] > label:hover {
+        background-color: #2D3948;  /* subtle dark hover */
+        color: #fff;
+    }
+
+    </style>
+""", unsafe_allow_html=True)
+
     st.markdown("""
         <style>
             /* Hide Streamlit default elements */
@@ -262,55 +314,36 @@ def render_coin_card(coin, token):
 
 
 def main():
-    # Page configuration
+    # 🔐 Redirect if not logged in
+    if not st.session_state.get("logged_in") or "token" not in st.session_state:
+        st.warning("You must be logged in to access the dashboard.")
+        st.switch_page("main.py")  # change this if your file is named differently
+        st.stop()
+
+    # ✅ Now safe to use session data
+    token = st.session_state.token
+
     st.set_page_config(
         page_title="Crypto Dashboard",
         layout="wide",
         page_icon="💹"
     )
-    # Inject custom CSS (assuming this function exists)
-    inject_css()
-    # Check if user is authenticated
-    if "token" not in st.session_state:
-        st.markdown("### 🔑 Please enter your token to access the dashboard:")
-        input_token = st.text_input("Token", type="password")
-        if input_token:
-            # Validate token by trying to fetch balance
-            with st.spinner("Validating token..."):
-                balance, is_valid = get_user_balance(input_token, BASE_URL)
-                if is_valid:
-                    st.session_state.token = input_token
-                    st.session_state.balance = balance
-                    st.session_state.is_authenticated = True
-                    st.success("✅ Token validated successfully!")
-                    st.rerun()
-                else:
-                    st.error("❌ Invalid token. Please check your token and try again.")
-        return
-    # Get token and balance
-    token = st.session_state.token
-    
-    # Check if user is properly authenticated
-    if not st.session_state.get("is_authenticated", False):
-        st.error("❌ Authentication required. Please logout and login again.")
-        return
-    
-    # Fetch balance (refresh if needed)
+
     if "balance" not in st.session_state:
         balance, is_valid = get_user_balance(token, BASE_URL)
         if is_valid:
             st.session_state.balance = balance
         else:
             st.error("❌ Failed to fetch balance. Token may be invalid.")
-            # Clear session and force re-authentication
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
             return
     else:
         balance = st.session_state.balance
-    
-    # Create simple top bar with balance
+
+    inject_css()
+
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown(f"# CryptoSim")
@@ -326,42 +359,34 @@ def main():
                     st.rerun()
                 else:
                     st.error("❌ Failed to refresh balance. Token may be invalid.")
-                    # Clear session and force re-authentication
                     for key in list(st.session_state.keys()):
                         del st.session_state[key]
                     st.rerun()
-    
+
     st.markdown("---")
-    
-    # Sidebar navigation
+
     with st.sidebar:
-        st.markdown("## Home")
+        st.header('CryptoSim')
         st.markdown("---")
-        page = st.radio("Go to", ["Dashboard", "Portfolio", "Wishlist", 'Transactions', 'Profile'])
+        page = st.radio("", ["Dashboard", "Portfolio", "Wishlist", 'Transactions', 'Profile'])
         st.markdown("---")
         st.markdown(f"**Current Balance: ${balance:,.2f}**")
-        # st.markdown("---")
         if st.button("Logout"):
-            # Clear session state
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
-    # Handle different pages
+
     if page == "Dashboard":
         st.markdown("<h2 style='text-align: center; color: white;'>Dashboard</h2>", unsafe_allow_html=True)
-        # st.write('')
         st.markdown("###")
-        # Fetch and display coins
         try:
-            # Pass token to fetch_coins if it needs authentication
             coins = fetch_coins(token) if 'token' in fetch_coins.__code__.co_varnames else fetch_coins()
             for i in range(0, len(coins), 4):
-                    cols = st.columns(4)
-                    for j, col in enumerate(cols):
-                        if i + j < len(coins):
-                            with col:
-                                # Pass token to coin card for buy operations
-                                render_coin_card(coins[i + j], token)
+                cols = st.columns(4)
+                for j, col in enumerate(cols):
+                    if i + j < len(coins):
+                        with col:
+                            render_coin_card(coins[i + j], token)
         except Exception as e:
             st.error(f"Failed to load cryptocurrency data: {str(e)}")
             st.info("💡 Please check your internet connection or try refreshing the page.")
@@ -375,7 +400,12 @@ def main():
         render_profile_page()
     else:
         st.warning(f"⚙️ `{page}` page is under construction.")
-        return
+
+# Utility functions expected to be defined elsewhere in the same file or imported
+# def inject_css(): ...
+# def fetch_coins(token): ...
+# def render_coin_card(...): ...
+# def get_user_balance(token, base_url): ...
 
 if __name__ == "__main__":
     main()

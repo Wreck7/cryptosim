@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-BASE_URL = "http://127.0.0.1:7000"
+BASE_URL = "http://127.0.0.1:7001"
 
 def render_portfolio_page():
     st.markdown("<h2 style='text-align: center; color: white;'>📊 Your Portfolio</h2>", unsafe_allow_html=True)

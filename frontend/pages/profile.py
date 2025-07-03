@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 from datetime import datetime
 
-BASE_URL = "http://127.0.0.1:7000"
+BASE_URL = "http://127.0.0.1:7001"
 
 def render_profile_page():
     st.markdown("<h2 style='text-align: center; color: white;'>👤 Your Profile</h2>", unsafe_allow_html=True)

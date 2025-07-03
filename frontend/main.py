@@ -1,14 +1,10 @@
 import streamlit as st
 import requests
-# from dashboard import main as dashboard_main
-st.set_page_config(page_title="CryptoSim Auth", layout="centered", page_icon="🔐")
-
-
 
 # --- CONFIG ---
-BASE_URL = "http://127.0.0.1:7000"  # Update if deployed
+st.set_page_config(page_title="CryptoSim Auth", layout="centered", page_icon="🔐")
+BASE_URL = "http://127.0.0.1:7001"  # Update if deployed
 
-st.set_page_config(page_title="Crypto Vault Auth", page_icon="🪙", layout="centered")
 st.markdown("<h1 style='text-align: center;'>CryptoSim</h1>", unsafe_allow_html=True)
 
 # --- TABS ---
@@ -31,9 +27,12 @@ with tab2:
             })
             if res.status_code == 200 and res.json().get("success"):
                 data = res.json()
-                st.success(f"✅ Login successful!  Welcome, {data['user']['name']}")
-                # st.write(f"**Welcome, {data['user']['name']}!**")
-                st.code(f"Token: {data['token']}")
+                # ✅ Save token and user info
+                st.session_state["token"] = data["token"]
+                st.session_state["user"] = data["user"]
+                st.session_state["logged_in"] = True
+                st.success(f"✅ Login successful! Welcome, {data['user']['name']}")
+                st.rerun()  # 🔁 Needed to trigger page switch
             else:
                 st.error(res.json().get("message", "Login failed."))
 
@@ -66,3 +65,7 @@ with tab1:
                 st.success("🎉 Registered successfully! You can now log in.")
             else:
                 st.error(res.json().get("message", "Registration failed."))
+
+# --- REDIRECT TO DASHBOARD IF LOGGED IN ---
+if st.session_state.get("logged_in"):
+    st.switch_page("pages/dashboard.py")
